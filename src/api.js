@@ -7,9 +7,12 @@ async function call(action, params = {}, body = null) {
   url.searchParams.set('action', action)
   url.searchParams.set('token', ACCESS_TOKEN)
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, String(v)))
+
+  // Apps Script requires text/plain to avoid CORS preflight failure
   const opts = body
-    ? { method: 'POST', body: JSON.stringify({ action, token: ACCESS_TOKEN, ...body }) }
-    : { method: 'GET' }
+    ? { method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action, token: ACCESS_TOKEN, ...body }) }
+    : { method: 'GET',  redirect: 'follow' }
+
   const res  = await fetch(url.toString(), opts)
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   const data = await res.json()
