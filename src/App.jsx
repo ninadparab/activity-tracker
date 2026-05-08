@@ -33,7 +33,47 @@ export default function App() {
 
   const isRO = USERS.find(u => u.id === user)?.role === 'readonly'
 
-  function flash(msg, err = false) {
+  // ── PIN gate ────────────────────────────────────────────────────────────────
+  const [pinOk,    setPinOk]    = useState(() => localStorage.getItem('ktrk_pin') === APP_PIN)
+  const [pinInput, setPinInput] = useState('')
+  const [pinErr,   setPinErr]   = useState(false)
+
+  function checkPin() {
+    if (pinInput.trim() === APP_PIN) {
+      localStorage.setItem('ktrk_pin', APP_PIN)
+      setPinOk(true)
+    } else {
+      setPinErr(true)
+      setPinInput('')
+      setTimeout(() => setPinErr(false), 1800)
+    }
+  }
+
+  if (!pinOk) return (
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg,#667eea,#764ba2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ background: '#fff', borderRadius: 24, padding: '36px 28px', maxWidth: 300, width: '90%', textAlign: 'center' }}>
+        <div style={{ fontSize: 48, marginBottom: 8 }}>🔒</div>
+        <h2 style={{ margin: '0 0 6px', fontSize: 20, fontWeight: 800, color: '#333' }}>Family Tracker</h2>
+        <p style={{ color: '#888', fontSize: 13, marginBottom: 24 }}>Enter your family PIN to continue</p>
+        <input
+          type="password"
+          value={pinInput}
+          onChange={e => setPinInput(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && checkPin()}
+          placeholder="Enter PIN"
+          style={{ width: '100%', border: `2px solid ${pinErr ? '#e53e3e' : '#ede9ff'}`, borderRadius: 12, padding: '12px 14px', fontSize: 18, textAlign: 'center', letterSpacing: 6, boxSizing: 'border-box', outline: 'none', marginBottom: 12, fontFamily: 'inherit' }}
+          autoFocus
+        />
+        {pinErr && <div style={{ color: '#e53e3e', fontSize: 13, marginBottom: 10 }}>Incorrect PIN — try again</div>}
+        <button onClick={checkPin}
+          style={{ width: '100%', background: '#667eea', border: 'none', borderRadius: 14, padding: 14, color: '#fff', fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>
+          Continue →
+        </button>
+      </div>
+    </div>
+  )
+
+  // ── User selector ───────────────────────────────────────────────────────────(msg, err = false) {
     setToast({ msg, err })
     setTimeout(() => setToast(null), 2800)
   }
