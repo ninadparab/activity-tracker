@@ -3,5 +3,5 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  base: '/family-activity-tracker/', // must match your GitHub repo name exactly
+  base: '/activity-tracker/', // must match your GitHub repo name exactly
 })
