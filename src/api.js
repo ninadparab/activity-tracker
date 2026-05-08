@@ -1,13 +1,14 @@
-import { API_URL, ANTHROPIC_KEY } from './config'
+import { API_URL, ANTHROPIC_KEY, ACCESS_TOKEN } from './config'
 
 // ── Apps Script API ────────────────────────────────────────────────────────
 
 async function call(action, params = {}, body = null) {
   const url = new URL(API_URL)
   url.searchParams.set('action', action)
+  url.searchParams.set('token', ACCESS_TOKEN)
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, String(v)))
   const opts = body
-    ? { method: 'POST', body: JSON.stringify({ action, ...body }) }
+    ? { method: 'POST', body: JSON.stringify({ action, token: ACCESS_TOKEN, ...body }) }
     : { method: 'GET' }
   const res  = await fetch(url.toString(), opts)
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
