@@ -13,7 +13,6 @@ export default function Scanner({ onResult, onClose }) {
     if (!file) return
     setStage('processing')
     try {
-      // Resize image first — Pixel cameras produce huge files that confuse barcode readers
       const resized = await resizeImage(file, 1200)
       const code    = await detectBarcode(resized)
       if (code) {
@@ -47,7 +46,6 @@ export default function Scanner({ onResult, onClose }) {
     >
       <div style={{ background:'#fff', borderRadius:'22px 22px 0 0', padding:'24px 20px 40px', width:'100%', maxHeight:'85vh', overflowY:'auto', boxSizing:'border-box' }}>
 
-        {/* Choose mode */}
         {stage === 'choose' && (
           <>
             <div style={{ fontWeight:800, fontSize:18, marginBottom:6 }}>📷 Add by Camera</div>
@@ -62,12 +60,8 @@ export default function Scanner({ onResult, onClose }) {
                 <div style={{ fontSize:12, opacity:.85 }}>Hold close to barcode — auto-fills title, author & cover</div>
               </div>
             </button>
-            <input
-              ref={barcodeRef}
-              type="file" accept="image/*" capture="environment"
-              style={{ display:'none' }}
-              onChange={handleBarcode}
-            />
+            <input ref={barcodeRef} type="file" accept="image/*" capture="environment"
+              style={{ display:'none' }} onChange={handleBarcode} />
 
             <button onClick={() => photoRef.current.click()} style={{ ...scanBtn('#43C6AC'), marginTop:10 }}>
               <span style={{ fontSize:32 }}>🖼️</span>
@@ -76,15 +70,11 @@ export default function Scanner({ onResult, onClose }) {
                 <div style={{ fontSize:12, opacity:.85 }}>Toys, games, art supplies — Claude identifies it</div>
               </div>
             </button>
-            <input
-              ref={photoRef}
-              type="file" accept="image/*" capture="environment"
-              style={{ display:'none' }}
-              onChange={handlePhoto}
-            />
+            <input ref={photoRef} type="file" accept="image/*" capture="environment"
+              style={{ display:'none' }} onChange={handlePhoto} />
 
             <div style={{ background:'#fffbeb', border:'1px solid #fcd34d', borderRadius:12, padding:'10px 14px', marginTop:16, fontSize:12, color:'#92400e' }}>
-              💡 <strong>Tip:</strong> For barcodes, get close — barcode should fill most of the screen. Good lighting helps a lot.
+              💡 <strong>Tip:</strong> Get close so the barcode fills most of the screen. Good lighting helps.
             </div>
 
             <button onClick={onClose}
@@ -94,7 +84,6 @@ export default function Scanner({ onResult, onClose }) {
           </>
         )}
 
-        {/* Processing */}
         {stage === 'processing' && (
           <div style={{ textAlign:'center', padding:'40px 0' }}>
             <div style={{ fontSize:48, marginBottom:16 }}>🔍</div>
@@ -103,7 +92,6 @@ export default function Scanner({ onResult, onClose }) {
           </div>
         )}
 
-        {/* Result */}
         {stage === 'result' && result && (
           <>
             <div style={{ fontWeight:800, fontSize:18, marginBottom:16 }}>✅ Found it!</div>
@@ -114,15 +102,9 @@ export default function Scanner({ onResult, onClose }) {
               }
               <div style={{ flex:1, minWidth:0 }}>
                 <div style={{ fontWeight:700, fontSize:16, marginBottom:4 }}>{result.name || '—'}</div>
-                {result.author && (
-                  <div style={{ color:'#888', fontSize:13, marginBottom:4 }}>{result.author}</div>
-                )}
-                <div style={{ fontSize:12, color:'#667eea', fontWeight:600, marginBottom:4 }}>
-                  {result.category}
-                </div>
-                {result.notes && (
-                  <div style={{ fontSize:12, color:'#888' }}>{String(result.notes).slice(0, 100)}</div>
-                )}
+                {result.author && <div style={{ color:'#888', fontSize:13, marginBottom:4 }}>{result.author}</div>}
+                <div style={{ fontSize:12, color:'#667eea', fontWeight:600, marginBottom:4 }}>{result.category}</div>
+                {result.notes && <div style={{ fontSize:12, color:'#888' }}>{String(result.notes).slice(0,100)}</div>}
               </div>
             </div>
             <div style={{ display:'flex', gap:10 }}>
@@ -138,10 +120,9 @@ export default function Scanner({ onResult, onClose }) {
           </>
         )}
 
-        {/* Error */}
         {stage === 'error' && (
           <>
-            <div style={{ fontWeight:800, fontSize:18, marginBottom:8 }}>😕 Couldn't identify</div>
+            <div style={{ fontWeight:800, fontSize:18, marginBottom:8 }}>😕 Couldn't read barcode</div>
             <div style={{ color:'#888', fontSize:13, marginBottom:24 }}>{errMsg}</div>
             <button onClick={() => setStage('choose')}
               style={{ width:'100%', background:'#667eea', border:'none', borderRadius:14, padding:14, color:'#fff', fontWeight:700, fontSize:15, cursor:'pointer', marginBottom:10 }}>
@@ -165,7 +146,8 @@ const scanBtn = color => ({
   color:'#fff', textAlign:'left', cursor:'pointer', fontFamily:'inherit',
 })
 
-// Resize image using canvas — fixes barcode detection on high-res phone cameras
+// Resize before barcode detection — Pixel cameras produce huge images
+// that make the barcode a tiny fraction, confusing the detector
 async function resizeImage(file, maxWidth) {
   return new Promise((resolve, reject) => {
     const img = new Image()
