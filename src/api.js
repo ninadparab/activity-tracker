@@ -116,7 +116,7 @@ export async function identifyFromPhoto(base64jpeg) {
       'anthropic-dangerous-direct-browser-access': 'true',
     },
     body: JSON.stringify({
-      model:      'claude-sonnet-4-20250514',
+      model:      'claude-sonnet-4-6',
       max_tokens: 300,
       messages: [{
         role: 'user',
@@ -137,10 +137,14 @@ export async function identifyFromPhoto(base64jpeg) {
     }),
   })
   const data = await res.json()
-  const text = data.content?.[0]?.text || '{}'
+  if (data.error) { console.error('Claude API error:', data.error); return null }
+  const text = data.content?.[0]?.text || ''
   console.log('Claude raw response:', text)
-  try { return JSON.parse(text.replace(/```json|```/g, '').trim()) }
-  catch { return null }
+  if (!text) return null
+  try {
+    const parsed = JSON.parse(text.replace(/```json|```/g, '').trim())
+    return parsed.name ? parsed : null
+  } catch { return null }
 }
 
 // ── Native barcode detection (Chrome on Android, Edge) ────────────────────
