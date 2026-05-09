@@ -7,11 +7,14 @@ function daysSince(iso) { return iso ? Math.floor((Date.now() - new Date(iso).ge
 function isArchived(a)  { return a.archived === true || a.archived === 'TRUE' || a.archived === 'true' }
 
 export default function Activities() {
-  const { activities, logs, isRO, removeItem } = useApp()
+  const { activities, logs, isRO, removeItem, logItem } = useApp()
   const [filterCat,    setFilter]   = useState('All')
   const [showForm,     setShowForm] = useState(false)
   const [editItem,     setEditItem] = useState(null)
   const [showArchived, setShowArch] = useState(false)
+
+  const todayStr    = new Date().toISOString().split('T')[0]
+  const loggedToday = new Set(logs.filter(l => l.date === todayStr).map(l => String(l.activityId)))
 
   const lastDone = {}
   for (const lg of logs) {
@@ -51,8 +54,9 @@ export default function Activities() {
           const meta = CAT_META[act.category] || { icon: '✨', color: '#888' }
           const ds   = daysSince(lastDone[act.id])
           const over = ds > (parseFloat(act.frequencyDays) || 14)
+          const done = loggedToday.has(String(act.id))
           return (
-            <div key={act.id} style={{ background: '#fff', border: `1.5px solid ${over ? '#fca5a5' : '#ede9ff'}`, borderRadius: 14, padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div key={act.id} style={{ background: done ? '#f0fff4' : '#fff', border: `1.5px solid ${done ? '#68d391' : over ? '#fca5a5' : '#ede9ff'}`, borderRadius: 14, padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
               {act.imageUrl
                 ? <img src={act.imageUrl} alt="" style={{ width: 40, height: 52, objectFit: 'cover', borderRadius: 6, flexShrink: 0 }} />
                 : <span style={{ fontSize: 26, flexShrink: 0 }}>{meta.icon}</span>}
@@ -65,6 +69,10 @@ export default function Activities() {
               </div>
               {!isRO && (
                 <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                  <button onClick={() => !done && logItem(act.id)}
+                    style={{ background: done ? '#68d391' : '#667eea', border: 'none', borderRadius: 8, padding: '5px 10px', cursor: done ? 'default' : 'pointer', fontSize: 12, color: '#fff', fontWeight: 600 }}>
+                    {done ? '✓' : 'Log'}
+                  </button>
                   <button onClick={() => { setEditItem(act); setShowForm(true) }}
                     style={{ background: '#ede9ff', border: 'none', borderRadius: 8, padding: '5px 10px', cursor: 'pointer', fontSize: 12, color: '#667eea' }}>Edit</button>
                   <button onClick={() => removeItem(act.id)}
