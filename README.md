@@ -1,6 +1,6 @@
 # 🌟 Family Activity Tracker
 
-A web app that helps families track and rotate kids' activities — books, board games, STEM toys, art, outdoor play, and classes. Built so nothing gathers dust for months.
+A web app that helps families track and rotate kids' activities — books, board games, toys, art, outdoor play, and classes. Built so nothing gathers dust for months.
 
 ## What it does
 
