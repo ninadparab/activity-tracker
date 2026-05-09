@@ -9,7 +9,6 @@ A web app that helps families track and rotate kids' activities — books, board
 - **Activity logging** — one tap to log a completed activity, synced to Google Sheets
 - **Barcode scanning** — scan a book's ISBN barcode to auto-fill title, author, and cover image
 - **Photo identification** — photograph a toy or game box and Claude Vision identifies it
-- **Local events** — pulls kids events from KCLS (5 branches) and ParentMap Eastside
 - **Multi-user** — Dad and Mom can both log activities; Daughter has read-only access
 - **PIN protected** — family PIN required to open the app
 
@@ -99,8 +98,8 @@ This repo contains no hardcoded secrets. To run your own instance:
 ### 3. Fork and configure
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/family-activity-tracker
-cd family-activity-tracker
+git clone https://github.com/ninadparab/activity-tracker
+cd activity-tracker
 npm install
 ```
 
@@ -134,7 +133,7 @@ Enable GitHub Pages: repo **Settings → Pages → Source: GitHub Actions**
 
 Push to `main` — GitHub Actions builds and deploys automatically. Your app will be live at:
 ```
-https://YOUR_USERNAME.github.io/family-activity-tracker
+https://YOUR_USERNAME.github.io/activity-tracker
 ```
 
 ### 5. Run locally
