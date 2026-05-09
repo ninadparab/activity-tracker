@@ -1,14 +1,18 @@
-import { API_URL, ANTHROPIC_KEY } from './config'
+import { API_URL, ANTHROPIC_KEY, ACCESS_TOKEN } from './config'
 
 // ── Apps Script API ────────────────────────────────────────────────────────
 
 async function call(action, params = {}, body = null) {
   const url = new URL(API_URL)
   url.searchParams.set('action', action)
+  url.searchParams.set('token', ACCESS_TOKEN)
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, String(v)))
+
+  // Apps Script requires text/plain to avoid CORS preflight failure
   const opts = body
-    ? { method: 'POST', body: JSON.stringify({ action, ...body }) }
-    : { method: 'GET' }
+    ? { method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action, token: ACCESS_TOKEN, ...body }) }
+    : { method: 'GET',  redirect: 'follow' }
+
   const res  = await fetch(url.toString(), opts)
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   const data = await res.json()

@@ -1,6 +1,7 @@
 import { useState, useEffect, createContext, useContext } from 'react'
 import { BrowserRouter, Routes, Route, NavLink, Navigate } from 'react-router-dom'
 import { api } from './api'
+import { APP_PIN } from './config'
 import Today      from './pages/Today'
 import Activities from './pages/Activities'
 import Dashboard  from './pages/Dashboard'
@@ -33,6 +34,69 @@ export default function App() {
 
   const isRO = USERS.find(u => u.id === user)?.role === 'readonly'
 
+  // ── PIN gate ───────────────────────────────────────────────────────────────
+  const [pinOk,    setPinOk]    = useState(() => localStorage.getItem('ktrk_pin') === APP_PIN)
+  const [pinInput, setPinInput] = useState('')
+  const [pinErr,   setPinErr]   = useState(false)
+
+  function checkPin() {
+    if (pinInput.trim() === APP_PIN) {
+      localStorage.setItem('ktrk_pin', APP_PIN)
+      setPinOk(true)
+    } else {
+      setPinErr(true)
+      setPinInput('')
+      setTimeout(() => setPinErr(false), 1800)
+    }
+  }
+
+  if (!pinOk) return (
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg,#667eea,#764ba2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ background: '#fff', borderRadius: 24, padding: '36px 28px', maxWidth: 300, width: '90%', textAlign: 'center' }}>
+        <div style={{ fontSize: 48, marginBottom: 8 }}>🔒</div>
+        <h2 style={{ margin: '0 0 6px', fontSize: 20, fontWeight: 800, color: '#333' }}>Family Tracker</h2>
+        <p style={{ color: '#888', fontSize: 13, marginBottom: 24 }}>Enter your family PIN to continue</p>
+        <input
+          type="password"
+          value={pinInput}
+          onChange={e => setPinInput(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && checkPin()}
+          placeholder="Enter PIN"
+          autoFocus
+          style={{ width: '100%', border: `2px solid ${pinErr ? '#e53e3e' : '#ede9ff'}`, borderRadius: 12, padding: '12px 14px', fontSize: 18, textAlign: 'center', letterSpacing: 6, boxSizing: 'border-box', outline: 'none', marginBottom: 12, fontFamily: 'inherit' }}
+        />
+        {pinErr && <div style={{ color: '#e53e3e', fontSize: 13, marginBottom: 10 }}>Incorrect PIN — try again</div>}
+        <button onClick={checkPin}
+          style={{ width: '100%', background: '#667eea', border: 'none', borderRadius: 14, padding: 14, color: '#fff', fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>
+          Continue →
+        </button>
+      </div>
+    </div>
+  )
+
+  // ── User selector ──────────────────────────────────────────────────────────
+  if (!user) return (
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg,#667eea,#764ba2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ background: '#fff', borderRadius: 24, padding: '32px 28px', maxWidth: 320, width: '90%' }}>
+        <div style={{ textAlign: 'center', marginBottom: 24 }}>
+          <div style={{ fontSize: 52 }}>🌟</div>
+          <h1 style={{ margin: '8px 0 4px', fontSize: 22, fontWeight: 800, color: '#333' }}>Activity Tracker</h1>
+          <p style={{ color: '#888', fontSize: 13, margin: 0 }}>Who's using the app?</p>
+        </div>
+        {USERS.map(u => (
+          <button key={u.id}
+            onClick={() => { setUser(u.id); localStorage.setItem('ktrk_user', u.id) }}
+            style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', marginBottom: 10, background: '#f8f7ff', border: '2px solid #ede9ff', borderRadius: 16, padding: '14px 16px', cursor: 'pointer', fontFamily: 'inherit' }}>
+            <span style={{ fontSize: 28 }}>{u.emoji}</span>
+            <span style={{ flex: 1, textAlign: 'left', fontSize: 16, fontWeight: 700, color: '#333' }}>{u.id}</span>
+            {u.role === 'readonly' && <span style={{ fontSize: 11, color: '#aaa' }}>View only</span>}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+
+  // ── Main app ───────────────────────────────────────────────────────────────
   function flash(msg, err = false) {
     setToast({ msg, err })
     setTimeout(() => setToast(null), 2800)
@@ -57,9 +121,7 @@ export default function App() {
   async function saveItem(item) {
     if (isRO) return
     try {
-      item.id
-        ? await api.updateActivity(item)
-        : await api.addActivity({ ...item, addedBy: user })
+      item.id ? await api.updateActivity(item) : await api.addActivity({ ...item, addedBy: user })
       flash(item.id ? '✅ Updated' : '✅ Added')
       refresh()
     } catch (e) { flash(e.message, true) }
@@ -71,35 +133,13 @@ export default function App() {
     catch (e) { flash(e.message, true) }
   }
 
-  useEffect(() => { if (user) refresh() }, [user])
-
-  // Login screen
-  if (!user) return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg,#667eea,#764ba2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ background: '#fff', borderRadius: 24, padding: '32px 28px', maxWidth: 320, width: '90%' }}>
-        <div style={{ textAlign: 'center', marginBottom: 24 }}>
-          <div style={{ fontSize: 52 }}>🌟</div>
-          <h1 style={{ margin: '8px 0 4px', fontSize: 22, fontWeight: 800, color: '#333' }}>Activity Tracker</h1>
-          <p style={{ color: '#888', fontSize: 13, margin: 0 }}>Who's using the app?</p>
-        </div>
-        {USERS.map(u => (
-          <button key={u.id}
-            onClick={() => { setUser(u.id); localStorage.setItem('ktrk_user', u.id) }}
-            style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', marginBottom: 10, background: '#f8f7ff', border: '2px solid #ede9ff', borderRadius: 16, padding: '14px 16px', cursor: 'pointer', fontFamily: 'inherit' }}>
-            <span style={{ fontSize: 28 }}>{u.emoji}</span>
-            <span style={{ flex: 1, textAlign: 'left', fontSize: 16, fontWeight: 700, color: '#333' }}>{u.id}</span>
-            {u.role === 'readonly' && <span style={{ fontSize: 11, color: '#aaa' }}>View only</span>}
-          </button>
-        ))}
-      </div>
-    </div>
-  )
+  useEffect(() => { refresh() }, [user])
 
   const ctx = { user, isRO, activities: acts, logs, busy, logItem, saveItem, removeItem, refresh, flash }
 
   return (
     <Ctx.Provider value={ctx}>
-      <BrowserRouter basename="/family-activity-tracker">
+      <BrowserRouter basename="/activity-tracker">
         <div style={{ maxWidth: 640, margin: '0 auto', minHeight: '100vh', background: '#f8f7ff', fontFamily: "'Segoe UI',system-ui,sans-serif", paddingBottom: 72 }}>
 
           <header style={{ background: 'linear-gradient(135deg,#667eea,#764ba2)', color: '#fff', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
